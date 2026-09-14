@@ -25,6 +25,9 @@ public class StampHead : MonoBehaviour
         if (paper == null)
             return;
 
-        paper.ApplyStamp();
+        if (paper.ApplyStamp())
+        {
+            stampTool.PlayStampAnimation();
+        }
     }
 }
