@@ -1,16 +1,6 @@
 using UnityEngine;
 
+// Legacy scene component. Ink pads no longer affect the stamper and can be removed.
 public class InkPad : MonoBehaviour
 {
-    [SerializeField] private StampColor inkColor;
-
-    private void OnTriggerEnter(Collider other)
-    {
-        StampTool stamp = other.GetComponentInParent<StampTool>();
-
-        if (stamp == null)
-            return;
-
-        stamp.LoadInk(inkColor);
-    }
 }

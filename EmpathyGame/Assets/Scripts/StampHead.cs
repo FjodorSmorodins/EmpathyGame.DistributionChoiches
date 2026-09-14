@@ -20,14 +20,11 @@ public class StampHead : MonoBehaviour
         if (stampTool == null)
             return;
 
-        if (stampTool.CurrentInk == StampColor.None)
-            return;
-
         PaperDocument paper = other.GetComponentInParent<PaperDocument>();
 
         if (paper == null)
             return;
 
-        paper.ApplyStamp(stampTool.CurrentInk);
+        paper.ApplyStamp();
     }
 }

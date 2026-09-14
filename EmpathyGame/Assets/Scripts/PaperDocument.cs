@@ -3,92 +3,76 @@ using UnityEngine;
 
 public class PaperDocument : MonoBehaviour
 {
-    [Header("Paper Renderer")]
+    [Header("Paper Appearance")]
     [SerializeField] private Renderer paperRenderer;
-
-    [Header("Paper Textures")]
     [SerializeField] private Texture unstampedTexture;
-    [SerializeField] private Texture redTexture;
-    [SerializeField] private Texture yellowTexture;
-    [SerializeField] private Texture greenTexture;
+    [Tooltip("Optional neutral stamped version of this paper.")]
+    [SerializeField] private Texture stampedTexture;
 
-    [Header("Settings")]
-    [SerializeField] private bool lockAfterFirstStamp = true;
+    [Header("Money Allocation")]
+    [Min(0)] [SerializeField] private int maximumAmount = 3000;
+    [Min(1)] [SerializeField] private int amountStep = 100;
+    [Min(0)] [SerializeField] private int startingAmount;
 
     public bool IsStamped { get; private set; }
-    public StampColor CurrentStamp { get; private set; } = StampColor.None;
+    public int AssignedAmount { get; private set; }
+    public int MaximumAmount => Mathf.Max(0, maximumAmount);
+    public int AmountStep => Mathf.Max(1, amountStep);
+    public int StepCount => Mathf.CeilToInt((float)MaximumAmount / AmountStep);
 
-    public event Action<PaperDocument, StampColor> Stamped;
+    public event Action Changed;
+    public event Action<PaperDocument, int> Stamped;
 
     private MaterialPropertyBlock propertyBlock;
-
     private static readonly int BaseMapID = Shader.PropertyToID("_BaseMap");
     private static readonly int MainTexID = Shader.PropertyToID("_MainTex");
 
-    private void Awake()
+    private void Awake() => ResetPaper();
+
+    public int AmountAtStep(int step)
     {
-        propertyBlock = new MaterialPropertyBlock();
-        ResetPaper();
+        return (int)Math.Min((long)Mathf.Clamp(step, 0, StepCount) * AmountStep, MaximumAmount);
     }
 
-    public bool ApplyStamp(StampColor stampColor)
+    public bool SetAmountStep(int step)
     {
-        if (stampColor == StampColor.None)
-            return false;
+        // Enforce the lock in the data as well as the UI.
+        if (IsStamped) return false;
+        AssignedAmount = AmountAtStep(step);
+        Changed?.Invoke();
+        return true;
+    }
 
-        if (IsStamped && lockAfterFirstStamp)
-            return false;
-
-        CurrentStamp = stampColor;
+    public bool ApplyStamp()
+    {
+        if (IsStamped) return false;
         IsStamped = true;
-
-        switch (stampColor)
-        {
-            case StampColor.Red:
-                SetTexture(redTexture);
-                break;
-
-            case StampColor.Yellow:
-                SetTexture(yellowTexture);
-                break;
-
-            case StampColor.Green:
-                SetTexture(greenTexture);
-                break;
-        }
-
-        Stamped?.Invoke(this, stampColor);
-
+        SetTexture(stampedTexture);
+        Changed?.Invoke();
+        Stamped?.Invoke(this, AssignedAmount);
         return true;
     }
 
     public void ResetPaper()
     {
         IsStamped = false;
-        CurrentStamp = StampColor.None;
-
-        if (propertyBlock == null)
-            propertyBlock = new MaterialPropertyBlock();
-
+        int initial = Mathf.Clamp(startingAmount, 0, MaximumAmount);
+        AssignedAmount = initial == MaximumAmount ? MaximumAmount
+            : AmountAtStep(Mathf.RoundToInt((float)initial / AmountStep));
         SetTexture(unstampedTexture);
+        Changed?.Invoke();
     }
 
     private void SetTexture(Texture texture)
     {
-        if (paperRenderer == null || texture == null)
+        if (paperRenderer == null || texture == null || paperRenderer.sharedMaterial == null)
             return;
-
+        if (propertyBlock == null) propertyBlock = new MaterialPropertyBlock();
         paperRenderer.GetPropertyBlock(propertyBlock);
-
         if (paperRenderer.sharedMaterial.HasProperty(BaseMapID))
-        {
             propertyBlock.SetTexture(BaseMapID, texture);
-        }
         else if (paperRenderer.sharedMaterial.HasProperty(MainTexID))
-        {
             propertyBlock.SetTexture(MainTexID, texture);
-        }
-
         paperRenderer.SetPropertyBlock(propertyBlock);
     }
 }
