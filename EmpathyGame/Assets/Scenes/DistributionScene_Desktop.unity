@@ -290,7 +290,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: -0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 10, y: 1, z: 10}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4836254293386838726}
@@ -762,7 +762,7 @@ Transform:
   m_GameObject: {fileID: 450753637}
   serializedVersion: 2
   m_LocalRotation: {x: -0.0857522, y: 0.6975179, z: -0.08467872, w: -0.70636034}
-  m_LocalPosition: {x: 3.5873263, y: 1.9479175, z: 0.051423796}
+  m_LocalPosition: {x: 4, y: 2.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1129,7 +1129,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: def1daa0b2bf1e54eae64c0b7a5e1a2f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ResourceDistributionManager
-  startingBudget: 5000
+  startingBudget: 5500
   allocationStep: 100
   smallRequestAmount: 1000
   averageRequestAmount: 2000
@@ -4287,7 +4287,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 6, z: 0}
-  m_LocalScale: {x: 4, y: 2, z: 4}
+  m_LocalScale: {x: 1, y: 2, z: 4}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4858300452998872189}
