@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 708de38b09caf5221b3cb8b334e87208, type: 3}
+  m_Name: Farmers Visit
+  m_EditorClassIdentifier: Assembly-CSharp::FamilyVisitDefinition
+  displayName: Farmers
+  representativePrefab: {fileID: 1166188534499286559, guid: 544f53fbe6b74e1408101ac07a49e0ab, type: 3}
+  capsuleColor: {r: 0.4, g: 0.65, b: 0.55, a: 1}
+  walkSpeed: 0.8
+  arrivalDelay: 0
+  onArrival: {fileID: 11400000, guid: fbed3b41eef8c9922cf38e73c3621a43, type: 2}
+  afterStamp: {fileID: 0}
+  afterReturn: {fileID: 11400000, guid: 89b33cf4c83742d1d00eec6275877cc0, type: 2}
+  arrivalVariable: {fileID: 0}
+  arrivalValue: 0

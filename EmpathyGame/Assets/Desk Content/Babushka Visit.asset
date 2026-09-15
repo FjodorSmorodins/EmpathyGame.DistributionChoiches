@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 708de38b09caf5221b3cb8b334e87208, type: 3}
+  m_Name: Babushka Visit
+  m_EditorClassIdentifier: Assembly-CSharp::FamilyVisitDefinition
+  displayName: Babushka
+  representativePrefab: {fileID: 7916203613763688431, guid: 1df598208a18161408705f5001507528, type: 3}
+  capsuleColor: {r: 0.65, g: 0.45, b: 0.55, a: 1}
+  walkSpeed: 0.8
+  arrivalDelay: 0
+  onArrival: {fileID: 11400000, guid: 3826854b2d090b08aefc484365b4bba3, type: 2}
+  afterStamp: {fileID: 0}
+  afterReturn: {fileID: 11400000, guid: 0d280bf20faf026ca2a8fac3f6a43504, type: 2}
+  arrivalVariable: {fileID: 0}
+  arrivalValue: 0

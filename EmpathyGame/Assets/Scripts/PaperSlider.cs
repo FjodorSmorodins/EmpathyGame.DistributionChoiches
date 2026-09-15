@@ -1,110 +1,87 @@
 using System.Collections;
+using System.Collections.Generic;
+using Oculus.Interaction;
+using Oculus.Interaction.HandGrab;
 using UnityEngine;
 
 public class PaperSlider : MonoBehaviour
 {
-    [Header("Movement")]
-    [SerializeField] private float slideDuration = 0.75f;
-
-    [Header("Physics")]
+    [Min(0)] [SerializeField] private float slideDuration = 0.75f;
     [SerializeField] private Rigidbody paperRigidbody;
-
-    [Header("Optional")]
-    [Tooltip("Put Meta XR interaction behaviours here if you want grabbing disabled during the automatic slide.")]
     [SerializeField] private Behaviour[] disableWhileSliding;
-
     public bool IsSliding { get; private set; }
-
+    private readonly List<Behaviour> suppressed = new List<Behaviour>();
+    private bool wasKinematic;
     private void Awake()
     {
-        if (paperRigidbody == null)
-            paperRigidbody = GetComponent<Rigidbody>();
+        if (paperRigidbody == null) paperRigidbody = GetComponent<Rigidbody>();
     }
-
     public void PlaceAt(Transform target)
     {
-        if (target == null)
-            return;
-
-        transform.SetPositionAndRotation(
-            target.position,
-            target.rotation
-        );
+        if (target == null) return;
+        ClearVelocity();
+        transform.SetPositionAndRotation(target.position, target.rotation);
+        if (paperRigidbody != null)
+        {
+            paperRigidbody.position = target.position;
+            paperRigidbody.rotation = target.rotation;
+        }
     }
-
     public IEnumerator SlideTo(Transform target)
     {
-        if (target == null)
-            yield break;
-
+        if (target == null || IsSliding) yield break;
         IsSliding = true;
-
-        SetInteractionEnabled(false);
-
-        bool previousKinematic = false;
-
+        foreach (var behaviour in GetComponentsInChildren<MonoBehaviour>(true))
+            if (behaviour is GrabInteractable || behaviour is HandGrabInteractable ||
+                behaviour is DistanceGrabInteractable || behaviour is DistanceHandGrabInteractable)
+                Suppress(behaviour);
+        if (disableWhileSliding != null)
+            foreach (var behaviour in disableWhileSliding) Suppress(behaviour);
         if (paperRigidbody != null)
         {
-            previousKinematic = paperRigidbody.isKinematic;
+            wasKinematic = paperRigidbody.isKinematic;
+            ClearVelocity();
             paperRigidbody.isKinematic = true;
         }
-
-        Vector3 startPosition = transform.position;
-        Quaternion startRotation = transform.rotation;
-
-        float timer = 0f;
-
-        while (timer < slideDuration)
+        Vector3 start = transform.position;
+        Quaternion rotation = transform.rotation;
+        try
         {
-            timer += Time.deltaTime;
-
-            float t = Mathf.Clamp01(timer / slideDuration);
-
-            // Makes the movement start/end more naturally.
-            float smoothT = t * t * (3f - 2f * t);
-
-            Vector3 newPosition = Vector3.Lerp(
-                startPosition,
-                target.position,
-                smoothT
-            );
-
-            Quaternion newRotation = Quaternion.Slerp(
-                startRotation,
-                target.rotation,
-                smoothT
-            );
-
-            transform.SetPositionAndRotation(
-                newPosition,
-                newRotation
-            );
-
-            yield return null;
+            float timer = 0;
+            while (timer < slideDuration)
+            {
+                timer += Time.deltaTime;
+                float t = Mathf.Clamp01(timer / slideDuration);
+                t = t * t * (3 - 2 * t);
+                transform.SetPositionAndRotation(Vector3.Lerp(start, target.position, t),
+                    Quaternion.Slerp(rotation, target.rotation, t));
+                yield return null;
+            }
+            PlaceAt(target);
         }
-
-        transform.SetPositionAndRotation(
-            target.position,
-            target.rotation
-        );
-
-        if (paperRigidbody != null)
-            paperRigidbody.isKinematic = previousKinematic;
-
-        SetInteractionEnabled(true);
-
+        finally { Restore(); }
+    }
+    private void Suppress(Behaviour behaviour)
+    {
+        if (behaviour == null || !behaviour.enabled || behaviour == this) return;
+        suppressed.Add(behaviour);
+        behaviour.enabled = false;
+    }
+    private void ClearVelocity()
+    {
+        if (paperRigidbody == null || paperRigidbody.isKinematic) return;
+        paperRigidbody.linearVelocity = Vector3.zero;
+        paperRigidbody.angularVelocity = Vector3.zero;
+    }
+    private void Restore()
+    {
+        if (!IsSliding) return;
+        if (paperRigidbody != null) paperRigidbody.isKinematic = wasKinematic;
+        foreach (var behaviour in suppressed)
+            if (behaviour != null) behaviour.enabled = true;
+        suppressed.Clear();
+        ClearVelocity();
         IsSliding = false;
     }
-
-    private void SetInteractionEnabled(bool enabled)
-    {
-        if (disableWhileSliding == null)
-            return;
-
-        foreach (Behaviour behaviour in disableWhileSliding)
-        {
-            if (behaviour != null)
-                behaviour.enabled = enabled;
-        }
-    }
+    private void OnDisable() => Restore();
 }

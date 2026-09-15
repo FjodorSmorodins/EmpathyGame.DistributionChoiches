@@ -10,11 +10,16 @@ public class StampTool : MonoBehaviour
     [Header("Animation")]
     [SerializeField] private Animator animator;
     [SerializeField] private string stampTriggerName = "Stamp";
+    [SerializeField] private bool requireHeld = true;
+    private PaperGrabState grabState;
+    public bool CanStamp => !requireHeld || (grabState != null && grabState.IsGrabbed);
 
     private int stampTriggerHash;
 
     private void Awake()
     {
+        grabState = GetComponent<PaperGrabState>();
+        if (grabState == null) grabState = gameObject.AddComponent<PaperGrabState>();
         if (stampBaseRenderer != null &&
             stampBaseRenderer.sharedMaterial != null)
         {
@@ -37,11 +42,16 @@ public class StampTool : MonoBehaviour
 
         stampTriggerHash =
             Animator.StringToHash(stampTriggerName);
+        if (animator != null)
+        {
+            animator.applyRootMotion = false;
+            animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+        }
     }
 
     public void PlayStampAnimation()
     {
-        if (animator == null)
+        if (animator == null || animator.runtimeAnimatorController == null)
         {
             Debug.LogWarning(
                 "StampTool has no Animator assigned.",
@@ -51,8 +61,8 @@ public class StampTool : MonoBehaviour
             return;
         }
 
+        animator.ResetTrigger(stampTriggerHash);
         animator.SetTrigger(stampTriggerHash);
-        Debug.Log("Animation Played");
 
     }
 }

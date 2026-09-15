@@ -16,7 +16,9 @@ public class PaperDocument : MonoBehaviour
 
     public bool IsStamped { get; private set; }
     public int AssignedAmount { get; private set; }
-    public int MaximumAmount => Mathf.Max(0, maximumAmount);
+    public int MaximumAmount => IsStamped ? lockedMaximum :
+        Mathf.Min(Mathf.Max(0, maximumAmount), budget != null ? budget.Remaining : int.MaxValue);
+    public bool CanEdit => !IsStamped && interactionAllowed;
     public int AmountStep => Mathf.Max(1, amountStep);
     public int StepCount => Mathf.CeilToInt((float)MaximumAmount / AmountStep);
 
@@ -24,10 +26,35 @@ public class PaperDocument : MonoBehaviour
     public event Action<PaperDocument, int> Stamped;
 
     private MaterialPropertyBlock propertyBlock;
+    private DeskBudget budget;
+    private bool interactionAllowed = true;
+    private int lockedMaximum;
     private static readonly int BaseMapID = Shader.PropertyToID("_BaseMap");
     private static readonly int MainTexID = Shader.PropertyToID("_MainTex");
 
     private void Awake() => ResetPaper();
+
+    public void ConfigureBudget(DeskBudget sharedBudget)
+    {
+        if (budget != null) budget.Changed -= OnBudgetChanged;
+        budget = sharedBudget;
+        if (budget != null) budget.Changed += OnBudgetChanged;
+        OnBudgetChanged();
+    }
+    public void SetInteractionAllowed(bool allowed)
+    {
+        interactionAllowed = allowed;
+        Changed?.Invoke();
+    }
+    private void OnBudgetChanged()
+    {
+        if (!IsStamped) AssignedAmount = Mathf.Min(AssignedAmount, MaximumAmount);
+        Changed?.Invoke();
+    }
+    private void OnDestroy()
+    {
+        if (budget != null) budget.Changed -= OnBudgetChanged;
+    }
 
     public int AmountAtStep(int step)
     {
@@ -37,7 +64,7 @@ public class PaperDocument : MonoBehaviour
     public bool SetAmountStep(int step)
     {
         // Enforce the lock in the data as well as the UI.
-        if (IsStamped) return false;
+        if (!CanEdit) return false;
         AssignedAmount = AmountAtStep(step);
         Changed?.Invoke();
         return true;
@@ -45,8 +72,15 @@ public class PaperDocument : MonoBehaviour
 
     public bool ApplyStamp()
     {
-        if (IsStamped) return false;
+        if (!CanEdit || AssignedAmount > MaximumAmount) return false;
+        lockedMaximum = MaximumAmount;
+        // Lock before notifying other documents so this committed amount stays fixed.
         IsStamped = true;
+        if (budget != null && !budget.TryCommit(this, AssignedAmount))
+        {
+            IsStamped = false;
+            return false;
+        }
         SetTexture(stampedTexture);
         Changed?.Invoke();
         Stamped?.Invoke(this, AssignedAmount);

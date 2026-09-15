@@ -1,4 +1,4 @@
-using Oculus.Interaction.Editor.QuickActions;
+using System.Linq;
 using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -16,7 +16,9 @@ public static class PaperMoneySliderSetup
         {
             var paper = selected.GetComponent<PaperDocument>();
             if (paper == null || EditorUtility.IsPersistent(paper) ||
-                paper.GetComponentInChildren<PaperMoneySlider>(true) != null) continue;
+                paper.GetComponentInChildren<PaperMoneySlider>(true) != null ||
+                Object.FindObjectsByType<PaperSliderVisual>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+                    .Any(visual => visual.paper == paper)) continue;
 
             var root = new GameObject("Money Slider", typeof(RectTransform), typeof(Canvas),
                 typeof(GraphicRaycaster));
@@ -56,6 +58,10 @@ public static class PaperMoneySliderSetup
             slider.navigation = new Navigation { mode = Navigation.Mode.None };
             slider.wholeNumbers = true;
             slider.maxValue = paper.StepCount;
+            var touchBox = handle.gameObject.AddComponent<BoxCollider>();
+            touchBox.isTrigger = true;
+            touchBox.size = new Vector3(40, 48, 24);
+            handle.gameObject.AddComponent<QuillSliderHandle>();
 
             var binding = root.AddComponent<PaperMoneySlider>();
             var serialized = new SerializedObject(binding);
@@ -64,9 +70,8 @@ public static class PaperMoneySliderSetup
             serialized.FindProperty("amountLabel").objectReferenceValue = label;
             serialized.ApplyModifiedPropertiesWithoutUndo();
 
-            // Use the installed Meta SDK's supported setup wizards, including rig interactors.
-            QuickActionsAPI.AddPokeCanvasInteraction(root);
-            QuickActionsAPI.AddRayCanvasInteraction(root);
+            var visual = root.AddComponent<PaperSliderVisual>();
+            visual.Configure(paper, Camera.main != null ? Camera.main.transform.eulerAngles.y : 0);
             EditorSceneManager.MarkSceneDirty(paper.gameObject.scene);
             count++;
         }

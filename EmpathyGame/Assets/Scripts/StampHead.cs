@@ -15,9 +15,12 @@ public class StampHead : MonoBehaviour
             stampTool = GetComponentInParent<StampTool>();
     }
 
-    private void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter(Collider other) => TryStamp(other);
+    private void OnTriggerStay(Collider other) => TryStamp(other);
+
+    private void TryStamp(Collider other)
     {
-        if (stampTool == null)
+        if (stampTool == null || !stampTool.CanStamp)
             return;
 
         PaperDocument paper = other.GetComponentInParent<PaperDocument>();
