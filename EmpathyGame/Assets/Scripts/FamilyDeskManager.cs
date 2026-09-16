@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -28,6 +29,13 @@ public class FamilyDeskManager : MonoBehaviour
     [Header("Family Order")]
     [SerializeField] private FamilyTurn[] familyTurns;
 
+    [Header("Shared Budget")]
+    [Min(0)]
+    [SerializeField] private int startingBudget = 5500;
+
+    [Tooltip("Invoked whenever an allocation changes. The value is the money still available.")]
+    public UnityEvent<int> onRemainingBudgetChanged;
+
     [Header("Timing")]
     [SerializeField] private float beforePaperSlideDelay = 0.5f;
     [SerializeField] private float afterStampDelay = 0.75f;
@@ -44,11 +52,142 @@ public class FamilyDeskManager : MonoBehaviour
 
     private int currentFamilyIndex = -1;
     private Coroutine currentRoutine;
+    private readonly Dictionary<PaperDocument, Action> paperChangeHandlers =
+        new Dictionary<PaperDocument, Action>();
+    private bool correctingAllocation;
+    private int lastReportedRemainingBudget = int.MinValue;
+
+    public int StartingBudget => Mathf.Max(0, startingBudget);
+    public int RemainingBudget { get; private set; }
+    public int TotalAllocated => StartingBudget - RemainingBudget;
+
+    private void OnEnable()
+    {
+        SubscribeToPaperChanges();
+    }
+
+    private void OnDisable()
+    {
+        UnsubscribeFromPaperChanges();
+    }
 
     private void Start()
     {
+        // OnEnable normally subscribes first, but calling this again is safe and
+        // also supports papers assigned by another script before Start.
+        SubscribeToPaperChanges();
+        EnforceBudgetAcrossAllPapers();
+
         if (startAutomatically)
             StartNextFamily();
+    }
+
+    private void SubscribeToPaperChanges()
+    {
+        if (familyTurns == null)
+            return;
+
+        foreach (FamilyTurn familyTurn in familyTurns)
+        {
+            PaperDocument paper = familyTurn != null ? familyTurn.paper : null;
+
+            if (paper == null || paperChangeHandlers.ContainsKey(paper))
+                continue;
+
+            Action handler = () => HandlePaperAmountChanged(paper);
+            paperChangeHandlers.Add(paper, handler);
+            paper.Changed += handler;
+        }
+    }
+
+    private void UnsubscribeFromPaperChanges()
+    {
+        foreach (KeyValuePair<PaperDocument, Action> entry in paperChangeHandlers)
+        {
+            if (entry.Key != null)
+                entry.Key.Changed -= entry.Value;
+        }
+
+        paperChangeHandlers.Clear();
+    }
+
+    private void EnforceBudgetAcrossAllPapers()
+    {
+        if (familyTurns != null)
+        {
+            foreach (FamilyTurn familyTurn in familyTurns)
+            {
+                if (familyTurn != null && familyTurn.paper != null)
+                    HandlePaperAmountChanged(familyTurn.paper);
+            }
+        }
+
+        RefreshRemainingBudget();
+    }
+
+    private void HandlePaperAmountChanged(PaperDocument changedPaper)
+    {
+        if (correctingAllocation || changedPaper == null)
+            return;
+
+        int allocatedToOtherPapers = GetTotalAllocatedExcept(changedPaper);
+        int maximumAvailableForThisPaper =
+            Mathf.Max(0, StartingBudget - allocatedToOtherPapers);
+
+        if (changedPaper.AssignedAmount > maximumAvailableForThisPaper)
+        {
+            if (changedPaper.IsStamped)
+            {
+                Debug.LogError(
+                    $"Stamped paper {changedPaper.name} exceeds the shared budget.",
+                    changedPaper
+                );
+            }
+            else
+            {
+                int maximumAllowedStep =
+                    maximumAvailableForThisPaper / changedPaper.AmountStep;
+
+                correctingAllocation = true;
+                changedPaper.SetAmountStep(maximumAllowedStep);
+                correctingAllocation = false;
+            }
+        }
+
+        RefreshRemainingBudget();
+    }
+
+    private int GetTotalAllocatedExcept(PaperDocument excludedPaper)
+    {
+        int total = 0;
+        var countedPapers = new HashSet<PaperDocument>();
+
+        if (familyTurns == null)
+            return total;
+
+        foreach (FamilyTurn familyTurn in familyTurns)
+        {
+            PaperDocument paper = familyTurn != null ? familyTurn.paper : null;
+
+            if (paper == null || paper == excludedPaper || !countedPapers.Add(paper))
+                continue;
+
+            total += paper.AssignedAmount;
+        }
+
+        return total;
+    }
+
+    private void RefreshRemainingBudget()
+    {
+        int totalAllocated = GetTotalAllocatedExcept(null);
+        RemainingBudget = Mathf.Max(0, StartingBudget - totalAllocated);
+
+        if (RemainingBudget == lastReportedRemainingBudget)
+            return;
+
+        lastReportedRemainingBudget = RemainingBudget;
+        onRemainingBudgetChanged?.Invoke(RemainingBudget);
     }
 
     public void StartNextFamily()
