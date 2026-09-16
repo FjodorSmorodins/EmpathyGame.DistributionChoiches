@@ -2092,6 +2092,63 @@ Transform:
   m_Children: []
   m_Father: {fileID: 167523691}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &412906096
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: de27fd476c0e888439f35d4d92775b83, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -2.813
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: de27fd476c0e888439f35d4d92775b83, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 4.146
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: de27fd476c0e888439f35d4d92775b83, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 5.631
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: de27fd476c0e888439f35d4d92775b83, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.672119
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: de27fd476c0e888439f35d4d92775b83, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.60798836
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: de27fd476c0e888439f35d4d92775b83, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.31341422
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: de27fd476c0e888439f35d4d92775b83, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.2835096
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: de27fd476c0e888439f35d4d92775b83, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -84.264
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: de27fd476c0e888439f35d4d92775b83, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -50
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: de27fd476c0e888439f35d4d92775b83, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: de27fd476c0e888439f35d4d92775b83, type: 3}
+      propertyPath: m_Name
+      value: soviet lamp
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: de27fd476c0e888439f35d4d92775b83, type: 3}
 --- !u!1 &433751896
 GameObject:
   m_ObjectHideFlags: 0
@@ -3837,7 +3894,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 788170886}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -81}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3845,7 +3902,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -42}
+  m_AnchoredPosition: {x: 200, y: -42}
   m_SizeDelta: {x: 580, y: 160}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &788170888
@@ -7297,14 +7354,71 @@ MonoBehaviour:
     paper: {fileID: 632175435}
     laneIndex: 0
     visit: {fileID: 11400000, guid: de3905c2e8f73da280ce259cd3730811, type: 2}
+    moneyOutcomes:
+    - outcomeName: Not Enough! :(
+      minimumAmount: 0
+      maximumAmount: 1399
+      monitorReaction: {fileID: 11400000, guid: e0368db9e1dcd06409799a1e13350168, type: 2}
+      setVariable: {fileID: 0}
+      variableValue: 0
+      onMatched:
+        m_PersistentCalls:
+          m_Calls: []
+    - outcomeName: Thank you so so much! God bless!
+      minimumAmount: 1400
+      maximumAmount: 3000
+      monitorReaction: {fileID: 11400000, guid: 7e9414689b1ec644c9e5f35b623e2b6e, type: 2}
+      setVariable: {fileID: 0}
+      variableValue: 0
+      onMatched:
+        m_PersistentCalls:
+          m_Calls: []
   - familyName: Bakers
     paper: {fileID: 4793495}
     laneIndex: 1
     visit: {fileID: 11400000, guid: 7daf5ebdc656c6d2082db2fa6abb5e3b, type: 2}
+    moneyOutcomes:
+    - outcomeName: Not Enough!
+      minimumAmount: 0
+      maximumAmount: 899
+      monitorReaction: {fileID: 11400000, guid: fca2d29217830fc4e940ef92e0f5ba2a, type: 2}
+      setVariable: {fileID: 0}
+      variableValue: 0
+      onMatched:
+        m_PersistentCalls:
+          m_Calls: []
+    - outcomeName: We are very greatful!
+      minimumAmount: 900
+      maximumAmount: 3000
+      monitorReaction: {fileID: 11400000, guid: a16ed729256b4774eb04743fba4ae72b, type: 2}
+      setVariable: {fileID: 0}
+      variableValue: 0
+      onMatched:
+        m_PersistentCalls:
+          m_Calls: []
   - familyName: Farmers
     paper: {fileID: 1212142839}
     laneIndex: 2
     visit: {fileID: 11400000, guid: 354111afeca95b3e5ede486d365fb538, type: 2}
+    moneyOutcomes:
+    - outcomeName: Not Enough
+      minimumAmount: 0
+      maximumAmount: 999
+      monitorReaction: {fileID: 11400000, guid: 75c5c8b7bdfe2f64ba185ee69c21147b, type: 2}
+      setVariable: {fileID: 0}
+      variableValue: 0
+      onMatched:
+        m_PersistentCalls:
+          m_Calls: []
+    - outcomeName: Enough
+      minimumAmount: 1000
+      maximumAmount: 3000
+      monitorReaction: {fileID: 11400000, guid: 968880dd8b2edb942bda3cc1b0cbab3c, type: 2}
+      setVariable: {fileID: 0}
+      variableValue: 0
+      onMatched:
+        m_PersistentCalls:
+          m_Calls: []
   budget: {fileID: 1555622556}
   dialogue: {fileID: 1555622555}
   startingBudget: 3000
@@ -8708,7 +8822,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1912831318}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -81}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -8716,7 +8830,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 85}
+  m_AnchoredPosition: {x: 252, y: 85}
   m_SizeDelta: {x: 580, y: 90}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1912831320
@@ -10475,3 +10589,4 @@ SceneRoots:
   - {fileID: 8603342343243667630}
   - {fileID: 1094238797338020099}
   - {fileID: 8279793858527885844}
+  - {fileID: 412906096}

@@ -18,6 +18,41 @@ public class FamilyDeskManager : MonoBehaviour
         [Tooltip("Optional waypoints between entrance and booth, in walking order.")]
         public Transform[] approachWaypoints = new Transform[0];
     }
+
+    [Serializable]
+    public class MoneyOutcome
+    {
+        [Tooltip("A descriptive name shown only in the Inspector, for example 'No help' or 'Fully funded'.")]
+        public string outcomeName;
+
+        [Min(0)]
+        [Tooltip("This outcome matches when the stamped amount is at least this value.")]
+        public int minimumAmount;
+
+        [Min(0)]
+        [Tooltip("This outcome matches when the stamped amount is no more than this value. Both limits are inclusive.")]
+        public int maximumAmount = 1000;
+
+        [Tooltip("Dialogue shown on the monitor when this range matches. It may contain any number of dialogue steps.")]
+        public DialogueSequence monitorReaction;
+
+        [Header("Optional story effect")]
+        [Tooltip("Optionally set a story variable when this outcome matches.")]
+        public StoryVariable setVariable;
+        public int variableValue;
+
+        [Header("Optional scene actions")]
+        [Tooltip("Use this to trigger animations, audio, object visibility, particles, or other Inspector-configured actions.")]
+        public UnityEvent onMatched = new UnityEvent();
+
+        public bool Matches(int amount)
+        {
+            int lower = Mathf.Min(minimumAmount, maximumAmount);
+            int upper = Mathf.Max(minimumAmount, maximumAmount);
+            return amount >= lower && amount <= upper;
+        }
+    }
+
     [Serializable]
     public class FamilyTurn
     {
@@ -25,6 +60,9 @@ public class FamilyDeskManager : MonoBehaviour
         public PaperDocument paper;
         public int laneIndex;
         public FamilyVisitDefinition visit;
+
+        [Tooltip("Checked from top to bottom. The first range containing the stamped amount is selected.")]
+        public MoneyOutcome[] moneyOutcomes = new MoneyOutcome[0];
     }
 
     [Header("Slots and visit order")]
@@ -54,6 +92,29 @@ public class FamilyDeskManager : MonoBehaviour
     private int currentFamilyIndex = -1;
     private bool running, finished;
     private string instruction = "";
+
+    // Can be selected from a MoneyOutcome UnityEvent. This resolves the
+    // representative created at runtime and triggers an animation on it.
+    public void TriggerCurrentRepresentativeAnimation(string triggerName)
+    {
+        if (CurrentRepresentative == null || string.IsNullOrWhiteSpace(triggerName))
+            return;
+
+        Animator representativeAnimator =
+            CurrentRepresentative.GetComponentInChildren<Animator>();
+
+        if (representativeAnimator == null ||
+            representativeAnimator.runtimeAnimatorController == null)
+        {
+            Debug.LogWarning(
+                $"{CurrentRepresentative.name} has no configured Animator.",
+                CurrentRepresentative
+            );
+            return;
+        }
+
+        representativeAnimator.SetTrigger(triggerName);
+    }
 
     private void Start()
     {
@@ -149,7 +210,6 @@ public class FamilyDeskManager : MonoBehaviour
         try { yield return new WaitUntil(() => family.paper.IsStamped); }
         finally { family.paper.Stamped -= onStamp; }
         SetInstruction("Return and release the stamped paper in its player slot.");
-        yield return dialogue.Play(visit != null ? visit.afterStamp : null, speaker);
         yield return new WaitForSeconds(Mathf.Max(0, afterStampDelay));
         while (!lane.returnZone.IsReady)
         {
@@ -158,6 +218,7 @@ public class FamilyDeskManager : MonoBehaviour
         }
         yield return slider.SlideTo(lane.representativeSlot);
         SetInstruction(speaker + " has received the paper.");
+        yield return PlayOutcomeReaction(family, visit, speaker);
         yield return dialogue.Play(visit != null ? visit.afterReturn : null, speaker);
         onFamilyFinished.Invoke(currentFamilyIndex);
         family.paper.gameObject.SetActive(false);
@@ -169,6 +230,62 @@ public class FamilyDeskManager : MonoBehaviour
         running = false;
         if (automaticallyStartNextFamily) StartNextFamily();
         else SetInstruction("Ready for the next family.");
+    }
+
+    private IEnumerator PlayOutcomeReaction(
+        FamilyTurn family,
+        FamilyVisitDefinition visit,
+        string speaker)
+    {
+        MoneyOutcome matchedOutcome = null;
+        int assignedAmount = family.paper.AssignedAmount;
+
+        if (family.moneyOutcomes != null)
+        {
+            foreach (MoneyOutcome outcome in family.moneyOutcomes)
+            {
+                if (outcome != null && outcome.Matches(assignedAmount))
+                {
+                    matchedOutcome = outcome;
+                    break;
+                }
+            }
+        }
+
+        DialogueSequence reaction = visit != null ? visit.afterStamp : null;
+
+        if (matchedOutcome != null)
+        {
+            if (matchedOutcome.setVariable != null)
+            {
+                dialogue.SetValue(
+                    matchedOutcome.setVariable,
+                    matchedOutcome.variableValue
+                );
+            }
+
+            matchedOutcome.onMatched?.Invoke();
+
+            if (matchedOutcome.monitorReaction != null)
+                reaction = matchedOutcome.monitorReaction;
+
+            Debug.Log(
+                $"{family.familyName} received {assignedAmount:N0}. " +
+                $"Matched outcome: {matchedOutcome.outcomeName}",
+                this
+            );
+        }
+        else
+        {
+            Debug.LogWarning(
+                $"No money outcome range on {family.familyName} contains " +
+                $"the stamped amount {assignedAmount:N0}. Using the visit's " +
+                $"default After Stamp dialogue.",
+                this
+            );
+        }
+
+        yield return dialogue.Play(reaction, speaker);
     }
 
     private GameObject CreateRepresentative(FamilyVisitDefinition visit, string displayName)
