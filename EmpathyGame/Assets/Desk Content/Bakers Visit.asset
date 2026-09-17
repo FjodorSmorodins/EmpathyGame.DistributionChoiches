@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Bakers Visit
   m_EditorClassIdentifier: Assembly-CSharp::FamilyVisitDefinition
   displayName: Bakers
-  representativePrefab: {fileID: 6842327443416835889, guid: efda3c064e20a5e4db6f16c3279ae83a, type: 3}
+  representativePrefab: {fileID: 8024641852371457574, guid: 772dd26a54d69604c9886eb1d4750e22, type: 3}
   capsuleColor: {r: 0.4, g: 0.45, b: 0.8, a: 1}
   walkSpeed: 0.8
   arrivalDelay: 0

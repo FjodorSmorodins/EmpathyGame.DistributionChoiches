@@ -9,6 +9,7 @@ public class PaperMoneySlider : MonoBehaviour
     [SerializeField] private TMP_Text amountLabel;
     [SerializeField] private string currencySymbol = "€";
     [SerializeField] private Color lockedColor = Color.gray;
+    public PaperDocument Paper => paper;
 
     private Graphic[] graphics;
     private Color[] editableColors;

@@ -15,9 +15,9 @@ MonoBehaviour:
   steps:
   - kind: 0
     speaker: 
-    text: "Good morning. I have brought my family's request."
+    text: Good morning. I have brought my family's request.
     voice: {fileID: 0}
-    seconds: 5
+    seconds: 3
     waitForAdvance: 0
     variable: {fileID: 0}
     value: 0
@@ -27,9 +27,9 @@ MonoBehaviour:
     conditionValue: 1
   - kind: 0
     speaker: 
-    text: "Please read the paper and decide how much you can assign to us."
+    text: Please read the paper and decide how much you can assign to us.
     voice: {fileID: 0}
-    seconds: 5
+    seconds: 3
     waitForAdvance: 0
     variable: {fileID: 0}
     value: 0
@@ -39,9 +39,9 @@ MonoBehaviour:
     conditionValue: 1
   - kind: 0
     speaker: 
-    text: "You remembered us. Thank you for taking the time to listen."
+    text: You remembered us. Thank you for taking the time to listen.
     voice: {fileID: 0}
-    seconds: 5
+    seconds: 2
     waitForAdvance: 0
     variable: {fileID: 0}
     value: 0

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Farmers Visit
   m_EditorClassIdentifier: Assembly-CSharp::FamilyVisitDefinition
   displayName: Farmers
-  representativePrefab: {fileID: 1166188534499286559, guid: 544f53fbe6b74e1408101ac07a49e0ab, type: 3}
+  representativePrefab: {fileID: 1114031859349112453, guid: 80930a47c6822f846a7b8adcb6f855e8, type: 3}
   capsuleColor: {r: 0.4, g: 0.65, b: 0.55, a: 1}
   walkSpeed: 0.8
   arrivalDelay: 0
