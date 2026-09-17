@@ -15,7 +15,7 @@ MonoBehaviour:
   steps:
   - kind: 0
     speaker: 
-    text: "Hello. I am here on behalf of the bakers."
+    text: Hello. I am here on behalf of the bakers.
     voice: {fileID: 0}
     seconds: 5
     waitForAdvance: 0
@@ -27,8 +27,8 @@ MonoBehaviour:
     conditionValue: 1
   - kind: 0
     speaker: 
-    text: "Our request is on this paper. Please consider it alongside the other families."
-    voice: {fileID: 0}
+    text: '[LISTENING]'
+    voice: {fileID: 8300000, guid: b01906cf0a4e22e40a6a45cdb3f73128, type: 3}
     seconds: 5
     waitForAdvance: 0
     variable: {fileID: 0}

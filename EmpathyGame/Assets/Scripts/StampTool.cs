@@ -15,6 +15,8 @@ public class StampTool : MonoBehaviour
     public bool CanStamp => !requireHeld || (grabState != null && grabState.IsGrabbed);
 
     private int stampTriggerHash;
+    [Header("Generated stamp sound")]
+    [Range(0, 1)] public float stampVolume = 0.55f;
 
     private void Awake()
     {
@@ -51,6 +53,8 @@ public class StampTool : MonoBehaviour
 
     public void PlayStampAnimation()
     {
+        // Successful stamp feedback should still work if the Animator is unassigned.
+        GeneratedDeskAudio.For(gameObject).Play(GeneratedDeskAudio.Sound.Stamp, stampVolume);
         if (animator == null || animator.runtimeAnimatorController == null)
         {
             Debug.LogWarning(

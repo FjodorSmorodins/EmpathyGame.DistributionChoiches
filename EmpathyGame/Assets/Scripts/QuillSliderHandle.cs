@@ -18,6 +18,10 @@ public class QuillSliderHandle : MonoBehaviour
     [SerializeField] private bool showDebugMessages;
 
     private Collider activeQuillTip;
+    [Header("Generated writing sound")]
+    [Range(0, 1)] public float writingVolume = 0.3f;
+    private GeneratedDeskAudio writingAudio;
+    private float lastContactTime;
 
     private void Awake()
     {
@@ -70,6 +74,7 @@ public class QuillSliderHandle : MonoBehaviour
             return;
 
         activeQuillTip = other;
+        lastContactTime = Time.fixedTime;
 
         if (showDebugMessages)
             Debug.Log("Quill selected slider handle.", this);
@@ -79,9 +84,10 @@ public class QuillSliderHandle : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
+        if (activeQuillTip == null) OnTriggerEnter(other);
         if (other != activeQuillTip)
             return;
-
+        lastContactTime = Time.fixedTime;
         UpdateSliderFromQuill();
     }
 
@@ -94,6 +100,7 @@ public class QuillSliderHandle : MonoBehaviour
             Debug.Log("Quill released slider handle.", this);
 
         activeQuillTip = null;
+        if (writingAudio != null) writingAudio.Stop();
     }
 
     private void UpdateSliderFromQuill()
@@ -181,5 +188,24 @@ public class QuillSliderHandle : MonoBehaviour
     private void OnDisable()
     {
         activeQuillTip = null;
+        if (writingAudio != null) writingAudio.Stop();
+    }
+
+    private void LateUpdate()
+    {
+        // Exit callbacks are not guaranteed when a collider is disabled or destroyed.
+        bool contact = activeQuillTip != null && activeQuillTip.enabled &&
+            activeQuillTip.gameObject.activeInHierarchy && GetComponent<Collider>().enabled &&
+            moneySlider != null && moneySlider.CanEditWithQuill &&
+            Time.fixedTime - lastContactTime <= Time.fixedDeltaTime * 2.5f;
+        if (!contact)
+        {
+            activeQuillTip = null;
+            if (writingAudio != null) writingAudio.Stop();
+            return;
+        }
+        if (writingAudio == null) writingAudio = GeneratedDeskAudio.For(gameObject);
+        writingAudio.Play(GeneratedDeskAudio.Sound.Writing, writingVolume, true);
+        writingAudio.SetPosition(activeQuillTip.bounds.center);
     }
 }

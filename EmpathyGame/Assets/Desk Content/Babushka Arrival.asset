@@ -27,9 +27,9 @@ MonoBehaviour:
     conditionValue: 1
   - kind: 0
     speaker: 
-    text: Please read the paper and decide how much you can assign to us.
-    voice: {fileID: 0}
-    seconds: 3
+    text: '[LISTENING]'
+    voice: {fileID: 8300000, guid: 6193974c34c55f049946ab8c69c2f4f9, type: 3}
+    seconds: 5
     waitForAdvance: 0
     variable: {fileID: 0}
     value: 0
