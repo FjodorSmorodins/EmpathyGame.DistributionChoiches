@@ -15,7 +15,7 @@ MonoBehaviour:
   steps:
   - kind: 0
     speaker: 
-    text: "Good day. I represent the farming family."
+    text: Good day. I represent the farming family.
     voice: {fileID: 0}
     seconds: 5
     waitForAdvance: 0
@@ -27,8 +27,8 @@ MonoBehaviour:
     conditionValue: 1
   - kind: 0
     speaker: 
-    text: "Here is our request. Please tell us what support you can provide."
-    voice: {fileID: 0}
+    text: '[LISTENING]'
+    voice: {fileID: 8300000, guid: f49439772b872754086a67a7546fae1d, type: 3}
     seconds: 5
     waitForAdvance: 0
     variable: {fileID: 0}

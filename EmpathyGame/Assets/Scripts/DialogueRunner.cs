@@ -16,6 +16,16 @@ public class DialogueRunner : MonoBehaviour
     public TMP_Text dialogueText;
     public TMP_Text statusText;
     public AudioSource voiceSource;
+    [Header("Monitor radio cue")]
+    public bool playRadioCue = true;
+    [Tooltip("Optional replacement sound. Empty uses a short generated radio crackle.")]
+    public AudioClip radioCueClip;
+    [Range(0, 1)] public float radioCueVolume = 0.25f;
+    [Tooltip("Optional speaker position. Empty uses the dialogue text's position on the monitor.")]
+    public Transform radioSpeaker;
+    [Range(0, 1)] public float radioSpatialBlend = 1f;
+    private AudioSource radioSource;
+    private AudioClip generatedRadioClip;
     public InteractionBinding[] interactions = new InteractionBinding[0];
     private readonly Dictionary<StoryVariable, int> values = new Dictionary<StoryVariable, int>();
     private StoryInteraction waitingFor;
@@ -64,8 +74,13 @@ public class DialogueRunner : MonoBehaviour
                 {
                     case DialogueSequence.StepKind.Line:
                         advance = false;
-                        if (dialogueText != null) dialogueText.text =
-                            $"{(string.IsNullOrEmpty(step.speaker) ? defaultSpeaker : step.speaker)}\n{step.text}";
+                        if (dialogueText != null)
+                        {
+                            string nextText = $"{(string.IsNullOrEmpty(step.speaker) ? defaultSpeaker : step.speaker)}\n{step.text}";
+                            bool changed = dialogueText.text != nextText;
+                            dialogueText.text = nextText;
+                            if (changed) PlayRadioCue();
+                        }
                         if (voiceSource != null && step.voice != null)
                         {
                             voiceSource.clip = step.voice;
@@ -104,5 +119,72 @@ public class DialogueRunner : MonoBehaviour
             waitingFor = null;
             IsRunning = false;
         }
+    }
+
+    [ContextMenu("Preview Radio Cue (Play Mode)")]
+    public void PlayRadioCue()
+    {
+        if (!Application.isPlaying || !isActiveAndEnabled || !playRadioCue || radioCueVolume <= 0) return;
+        if (radioSource == null)
+        {
+            var speaker = new GameObject("Dialogue Radio Speaker");
+            speaker.transform.SetParent(transform, false);
+            radioSource = speaker.AddComponent<AudioSource>();
+            radioSource.playOnAwake = false;
+            radioSource.loop = false;
+            radioSource.dopplerLevel = 0;
+            radioSource.rolloffMode = AudioRolloffMode.Linear;
+            radioSource.minDistance = 1;
+            radioSource.maxDistance = 8;
+        }
+        UpdateRadioPosition();
+        radioSource.spatialBlend = radioSpatialBlend;
+        if (radioCueClip == null && generatedRadioClip == null)
+            generatedRadioClip = CreateRadioCrackle();
+        // Retrigger rather than stacking bursts during rapid dialogue changes.
+        radioSource.Stop();
+        radioSource.clip = radioCueClip != null ? radioCueClip : generatedRadioClip;
+        radioSource.volume = radioCueVolume;
+        radioSource.Play();
+    }
+
+    private void LateUpdate() => UpdateRadioPosition();
+    private void UpdateRadioPosition()
+    {
+        if (radioSource == null) return;
+        Transform origin = radioSpeaker != null ? radioSpeaker : dialogueText != null ? dialogueText.transform : transform;
+        radioSource.transform.position = origin.position;
+    }
+
+    private static AudioClip CreateRadioCrackle()
+    {
+        const int rate = 24000;
+        const float duration = 0.22f;
+        var samples = new float[(int)(rate * duration)];
+        var random = new System.Random(7193); // Does not affect gameplay's random state.
+        float lowPass = 0, slowPass = 0;
+        for (int i = 0; i < samples.Length; i++)
+        {
+            float t = (float)i / rate;
+            float noise = (float)(random.NextDouble() * 2 - 1);
+            lowPass += 0.52f * (noise - lowPass);
+            slowPass += 0.055f * (noise - slowPass);
+            float envelope = Mathf.Clamp01(t / 0.008f) * Mathf.Clamp01((duration - t) / 0.04f);
+            float flutter = 0.35f + 0.65f * Mathf.Abs(Mathf.Sin(t * 173) * Mathf.Sin(t * 61));
+            samples[i] = (lowPass - slowPass) * flutter * envelope * 0.8f;
+        }
+        var clip = AudioClip.Create("Generated Monitor Radio Crackle", samples.Length, 1, rate, false);
+        clip.SetData(samples, 0);
+        return clip;
+    }
+
+    private void OnDisable()
+    {
+        if (radioSource != null) radioSource.Stop();
+    }
+    private void OnDestroy()
+    {
+        if (generatedRadioClip != null) Destroy(generatedRadioClip);
+        if (radioSource != null) Destroy(radioSource.gameObject);
     }
 }

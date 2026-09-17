@@ -15,7 +15,7 @@ MonoBehaviour:
   steps:
   - kind: 0
     speaker: 
-    text: "I have received the decision. Thank you for hearing our request."
+    text: I shall leave now.
     voice: {fileID: 0}
     seconds: 5
     waitForAdvance: 0

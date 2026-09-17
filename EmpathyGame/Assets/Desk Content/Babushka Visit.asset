@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Babushka Visit
   m_EditorClassIdentifier: Assembly-CSharp::FamilyVisitDefinition
   displayName: Babushka
-  representativePrefab: {fileID: 7916203613763688431, guid: 1df598208a18161408705f5001507528, type: 3}
+  representativePrefab: {fileID: 1114031859349112453, guid: 80930a47c6822f846a7b8adcb6f855e8, type: 3}
   capsuleColor: {r: 0.65, g: 0.45, b: 0.55, a: 1}
   walkSpeed: 0.8
   arrivalDelay: 0
