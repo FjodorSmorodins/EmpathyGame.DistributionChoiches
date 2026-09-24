@@ -22,8 +22,18 @@ public class FamilyDeskManager : MonoBehaviour
     [Serializable]
     public class MoneyOutcome
     {
+        public enum OutcomeTone
+        {
+            AutoFromName,
+            NotEnough,
+            Enough
+        }
+
         [Tooltip("A descriptive name shown only in the Inspector, for example 'No help' or 'Fully funded'.")]
         public string outcomeName;
+
+        [Tooltip("Controls the reaction dialogue color. Auto treats an outcome named 'Enough' as green and 'Not Enough' as red.")]
+        public OutcomeTone outcomeTone = OutcomeTone.AutoFromName;
 
         [Min(0)]
         [Tooltip("This outcome matches when the stamped amount is at least this value.")]
@@ -50,6 +60,25 @@ public class FamilyDeskManager : MonoBehaviour
             int lower = Mathf.Min(minimumAmount, maximumAmount);
             int upper = Mathf.Max(minimumAmount, maximumAmount);
             return amount >= lower && amount <= upper;
+        }
+
+        public bool IsEnough
+        {
+            get
+            {
+                if (outcomeTone == OutcomeTone.Enough) return true;
+                if (outcomeTone == OutcomeTone.NotEnough) return false;
+
+                return !string.IsNullOrWhiteSpace(outcomeName) &&
+                    outcomeName.IndexOf(
+                        "not enough",
+                        StringComparison.OrdinalIgnoreCase
+                    ) < 0 &&
+                    outcomeName.IndexOf(
+                        "enough",
+                        StringComparison.OrdinalIgnoreCase
+                    ) >= 0;
+            }
         }
     }
 
@@ -80,6 +109,9 @@ public class FamilyDeskManager : MonoBehaviour
     [SerializeField] private float betweenFamiliesDelay = 1f;
     [Header("Sequence")]
     [SerializeField] private bool startAutomatically = true;
+    [SerializeField]
+    [Tooltip("Wait for the player to grab the Instructions object before the first family arrives.")]
+    private bool requireInstructionsGrabToStart = true;
     [SerializeField] private bool automaticallyStartNextFamily = true;
     [Header("Optional events")]
     public UnityEvent<int> onFamilyStarted = new UnityEvent<int>();
@@ -139,7 +171,15 @@ public class FamilyDeskManager : MonoBehaviour
             // Papers are presented only when their representative reaches the booth.
             turn.paper.gameObject.SetActive(false);
         }
-        if (startAutomatically) StartNextFamily();
+        if (requireInstructionsGrabToStart &&
+            StartGameOnInstructionsGrab.TryInstall(this))
+        {
+            SetInstruction("Pick up the instructions to begin.");
+        }
+        else if (startAutomatically)
+        {
+            StartNextFamily();
+        }
     }
 
     public void PrepareScene() => DeskSceneDefaults.Prepare(this);
@@ -209,7 +249,7 @@ public class FamilyDeskManager : MonoBehaviour
         family.paper.Stamped += onStamp;
         try { yield return new WaitUntil(() => family.paper.IsStamped); }
         finally { family.paper.Stamped -= onStamp; }
-        SetInstruction("Return and release the stamped paper in its player slot.");
+        SetInstruction("Return and release the stamped paper in its corresponding slot.");
         yield return new WaitForSeconds(Mathf.Max(0, afterStampDelay));
         while (!lane.returnZone.IsReady)
         {
@@ -285,7 +325,13 @@ public class FamilyDeskManager : MonoBehaviour
             );
         }
 
-        yield return dialogue.Play(reaction, speaker);
+        Color? outcomeColor = matchedOutcome != null
+            ? matchedOutcome.IsEnough
+                ? dialogue.enoughOutcomeColor
+                : dialogue.notEnoughOutcomeColor
+            : null;
+
+        yield return dialogue.Play(reaction, speaker, outcomeColor);
     }
 
     private GameObject CreateRepresentative(FamilyVisitDefinition visit, string displayName)

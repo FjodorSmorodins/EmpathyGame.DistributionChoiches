@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 708de38b09caf5221b3cb8b334e87208, type: 3}
   m_Name: Bakers Visit
   m_EditorClassIdentifier: Assembly-CSharp::FamilyVisitDefinition
-  displayName: Bakers
+  displayName: Baker
   representativePrefab: {fileID: 2139773471366651474, guid: 772dd26a54d69604c9886eb1d4750e22, type: 3}
   capsuleColor: {r: 0.4, g: 0.45, b: 0.8, a: 1}
   walkSpeed: 0.8

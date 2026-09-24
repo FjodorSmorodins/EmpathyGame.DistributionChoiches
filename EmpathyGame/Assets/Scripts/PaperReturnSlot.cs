@@ -30,7 +30,7 @@ public class PaperReturnSlot : MonoBehaviour
         gate.Arm(Contains(paper.transform.position), grab != null ? grab.ReleaseVersion : 0);
         releaseAtArm = grab != null ? grab.ReleaseVersion : 0;
         ready = false;
-        returnStatus = "Place and release the stamped paper in its player slot.";
+        returnStatus = "Place and release the stamped paper in its corresponding slot.";
     }
     private bool ReleasedNearSlot(Vector3 point)
     {
@@ -63,10 +63,10 @@ public class PaperReturnSlot : MonoBehaviour
         bool releasedNear = ReleasedNearSlot(grab.ReleasePosition);
         ready = gate.Tick(inside, grab.IsGrabbed, grab.HasDeliberateRelease, releasedNear,
             grab.ReleaseVersion, Time.deltaTime, settleSeconds);
-        returnStatus = grab.IsGrabbed ? "Place the paper in its player slot and release your hand." :
-            !grab.HasDeliberateRelease || grab.ReleaseVersion <= releaseAtArm ? "Pick up the stamped paper and place it back in its player slot." :
-            !releasedNear ? "Release the paper over its matching player slot." :
-            !inside ? "Move the paper farther into its matching player slot." :
+        returnStatus = grab.IsGrabbed ? "Place the paper in its corresponding slot and release your hand." :
+            !grab.HasDeliberateRelease || grab.ReleaseVersion <= releaseAtArm ? "Pick up the stamped paper and place it back in its corresponding slot." :
+            !releasedNear ? "Release the paper over its corresponding slot." :
+            !inside ? "Move the paper farther into its corresponding slot." :
             !ready ? "Paper received; waiting for it to settle." : "Paper returned.";
     }
     private void Reset() => GetComponent<BoxCollider>().isTrigger = true;

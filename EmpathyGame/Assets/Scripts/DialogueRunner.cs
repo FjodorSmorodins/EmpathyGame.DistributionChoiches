@@ -24,6 +24,9 @@ public class DialogueRunner : MonoBehaviour
     [Tooltip("Optional speaker position. Empty uses the dialogue text's position on the monitor.")]
     public Transform radioSpeaker;
     [Range(0, 1)] public float radioSpatialBlend = 1f;
+    [Header("Outcome dialogue colors")]
+    public Color enoughOutcomeColor = new Color(0.15f, 0.85f, 0.2f, 1f);
+    public Color notEnoughOutcomeColor = new Color(0.9f, 0.15f, 0.12f, 1f);
     private AudioSource radioSource;
     private AudioClip generatedRadioClip;
     public InteractionBinding[] interactions = new InteractionBinding[0];
@@ -59,10 +62,16 @@ public class DialogueRunner : MonoBehaviour
     {
         if (statusText != null) statusText.text = text;
     }
-    public IEnumerator Play(DialogueSequence sequence, string defaultSpeaker)
+    public IEnumerator Play(
+        DialogueSequence sequence,
+        string defaultSpeaker,
+        Color? dialogueColor = null)
     {
         if (sequence == null) yield break;
         if (IsRunning) { Debug.LogError("A dialogue sequence is already running.", this); yield break; }
+        Color previousColor = dialogueText != null
+            ? dialogueText.color
+            : Color.white;
         IsRunning = true;
         try
         {
@@ -76,6 +85,8 @@ public class DialogueRunner : MonoBehaviour
                         advance = false;
                         if (dialogueText != null)
                         {
+                            if (dialogueColor.HasValue)
+                                dialogueText.color = dialogueColor.Value;
                             string nextText = $"{(string.IsNullOrEmpty(step.speaker) ? defaultSpeaker : step.speaker)}\n{step.text}";
                             bool changed = dialogueText.text != nextText;
                             dialogueText.text = nextText;
@@ -114,7 +125,11 @@ public class DialogueRunner : MonoBehaviour
         }
         finally
         {
-            if (dialogueText != null) dialogueText.text = "";
+            if (dialogueText != null)
+            {
+                dialogueText.text = "";
+                dialogueText.color = previousColor;
+            }
             if (voiceSource != null) voiceSource.Stop();
             waitingFor = null;
             IsRunning = false;

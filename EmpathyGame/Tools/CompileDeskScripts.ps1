@@ -1,8 +1,12 @@
 $ErrorActionPreference = 'Stop'
 Push-Location (Split-Path $PSScriptRoot -Parent)
 try {
-    $compiler = 'C:/Program Files/dotnet/sdk/10.0.401/Roslyn/bincore/csc.dll'
-    if (-not (Test-Path $compiler)) { throw 'Update the compiler path for your installed .NET SDK.' }
+    $dotnet = (Get-Command dotnet -ErrorAction Stop).Source
+    $dotnetRoot = Split-Path $dotnet -Parent
+    $compiler = Get-ChildItem "$dotnetRoot/sdk/*/Roslyn/bincore/csc.dll" |
+        Sort-Object { [version]$_.Directory.Parent.Parent.Name } |
+        Select-Object -Last 1 -ExpandProperty FullName
+    if (-not $compiler) { throw 'No Roslyn C# compiler was found in the installed .NET SDKs.' }
     New-Item -ItemType Directory -Path Temp/DeskChecks -Force | Out-Null
     foreach ($assembly in @('Assembly-CSharp', 'Assembly-CSharp-Editor')) {
         $project = [xml](Get-Content "$assembly.csproj" -Raw)
